@@ -5,10 +5,10 @@
         type="number"
         min="1"
         max="900"
-        @change="fetchPokemon()"
+        @change="pokeModel.fetchPokemon(pokemon.id)"
       />
-      <div v-if="loading"><img src="../static/loading.gif" height="200"/></div>
-      <div v-else-if="err"><h1> Error </h1></div>
+      <div v-if="pokeModel.loading"><img src="../static/loading.gif" height="200"/></div>
+      <div v-else-if="pokeModel.err"><h1> Error </h1></div>
       <div v-else>
         <h1>{{ pokemon.id }} {{ pokemon.name }}</h1>
         <img :src="pokemon.image" height="200" />
@@ -18,7 +18,6 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch } from "vue"
-import axios from "axios";
 import PokemonModel from "./Model";
 
 export default defineComponent({
@@ -26,33 +25,11 @@ export default defineComponent({
 
   setup() {
     const pokeModel = ref(new PokemonModel());
-    const loading = ref(true);
-    const err = ref(false);
-
     const pokemon = ref({
       id: pokeModel.value.currentPokeId,
       name: pokeModel.value.currentPokeName,
       image: pokeModel.value.currentImage
     });
-
-    const fetchPokemon = async () => {
-      loading.value = true;
-      await axios
-        .get(`https://pokeapi.co/api/v2/pokemon/${pokemon.value.id}`)
-        .then((response) => {
-          pokeModel.value.setPokeState(response.data.id);
-          pokeModel.value.setPokeName(response.data.name);
-          pokeModel.value.setPokeImage(
-            `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.value.id}.png`
-          );
-          loading.value = false;
-          err.value = false;
-        })
-        .catch((error) => {
-          loading.value = false;
-          err.value = true;
-          console.log(error)});
-    };
 
     watch(pokeModel,
       (newPoke) => {
@@ -63,13 +40,11 @@ export default defineComponent({
       {deep: true}
       );
 
-    fetchPokemon()
+    pokeModel.value.fetchPokemon(pokemon.value.id);
 
     return {
-      fetchPokemon,
       pokemon,
-      loading,
-      err,
+      pokeModel,
     };
     },
 });
